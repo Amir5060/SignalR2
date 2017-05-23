@@ -16,7 +16,7 @@ namespace SignalR2.Hubs
             Clients.All.hello();
         }
 
-        public IEnumerable<string> Send(string name, string message)
+        public void Send(string name, string message)
         {
             // Call the addNewMessageToPage method to update clients.
 
@@ -31,13 +31,10 @@ namespace SignalR2.Hubs
 
             Clients.All.addNewMessageToPage(name, message);
 
-            var vNames = from names in AllMessages()
-                    select new { names.username }.ToString();
-            return AllMessages().Select(x => x.username).ToArray();
-        }
-
-
-        
+            //var vNames = from names in AllMessages()
+            //        select new { names.username }.ToString();
+            //return AllMessages().Select(x => x.username).ToArray();
+        }        
 
         public List<ChatMessage> AllMessages()
         {
@@ -59,7 +56,19 @@ namespace SignalR2.Hubs
             CloudTable table = tableClient.GetTableReference("onlineusers");
             table.CreateIfNotExists();
             TableQuery<ChatMessage> query = new TableQuery<ChatMessage>();
+            Clients.All.getAllUsersOnline();
+            return table.ExecuteQuery(query).ToList().Select(x => x.username).ToArray();
+        }
 
+        public void DeleteAllOnlineUsers()
+        {
+            string storageConnection = "DefaultEndpointsProtocol=https;AccountName=onlineusers;AccountKey=aKsyG2sYLI+UAL2uzyZc2F6fXKux8L/JN/rYqVlqX4t3RLRD3l6KjnzCuSNUMyR6jcVrM+wx3UcmznzYXY0qcA==;EndpointSuffix=core.windows.net";
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnection);
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            CloudTable table = tableClient.GetTableReference("onlineusers");
+            var entity = new DynamicTableEntity("ThePartitionKey", "TheRowKey");
+            entity.ETag = "*";
+            table.Execute(TableOperation.Delete(entity));
         }
 
         public void AddOnlineUser(string name)
