@@ -54,10 +54,9 @@ namespace SignalR2.Hubs
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnection);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             CloudTable table = tableClient.GetTableReference("onlineusers");
-            table.CreateIfNotExists();
             TableQuery<ChatMessage> query = new TableQuery<ChatMessage>();
-            Clients.All.getAllUsersOnline();
-            return table.ExecuteQuery(query).ToList().Select(x => x.username).ToArray();
+            //Clients.All.getAllUsersOnline();
+            return table.ExecuteQuery(query).ToList().Select(x => x.PartitionKey).ToArray();
         }
 
         public void DeleteAllOnlineUsers()
@@ -71,16 +70,25 @@ namespace SignalR2.Hubs
             table.Execute(TableOperation.Delete(entity));
         }
 
+        static List<string> userList = new List<string>();
         public void AddOnlineUser(string name)
         {
-            string storageConnection = "DefaultEndpointsProtocol=https;AccountName=onlineusers;AccountKey=aKsyG2sYLI+UAL2uzyZc2F6fXKux8L/JN/rYqVlqX4t3RLRD3l6KjnzCuSNUMyR6jcVrM+wx3UcmznzYXY0qcA==;EndpointSuffix=core.windows.net";
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnection);
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-            CloudTable table = tableClient.GetTableReference("onlineusers");
-            table.CreateIfNotExists();
 
-            OnlineUser newUser = new OnlineUser(name, DateTime.Now.ToString(), "Online");
-            var v = table.Execute(TableOperation.InsertOrReplace(newUser));
+            userList.Add(name);
+            foreach(string str in userList)
+            {
+                Clients.All.addNewOnlineUser(name);
+            }
+            //string storageConnection = "DefaultEndpointsProtocol=https;AccountName=onlineusers;AccountKey=aKsyG2sYLI+UAL2uzyZc2F6fXKux8L/JN/rYqVlqX4t3RLRD3l6KjnzCuSNUMyR6jcVrM+wx3UcmznzYXY0qcA==;EndpointSuffix=core.windows.net";
+            //CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnection);
+            //CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            //CloudTable table = tableClient.GetTableReference("onlineusers");
+            //table.CreateIfNotExists();
+
+            //OnlineUser newUser = new OnlineUser(name, DateTime.Now.ToString(), "Online");
+            //var v = table.Execute(TableOperation.InsertOrReplace(newUser));
+
+            //Clients.All.addNewOnlineUser(name);            
         }
 
         //public void SaveName(string name)

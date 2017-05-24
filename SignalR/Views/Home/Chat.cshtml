@@ -10,8 +10,8 @@
         <input type="hidden" id="displayname" />
         <ul id="discussion"></ul>
     </div>
-    <div id="usersCol" style="float: right;">
-        <ul id="users"></ul>
+    <div id="onlineList" style="width: 19%; float: right; border-left: solid red 2px; height: 100%;">
+        <div style="font-size: 20px; border-bottom: double">Online Users</div>
     </div>
     <div style="clear: both;"></div>
 </div>
@@ -27,6 +27,7 @@
         $(function () {
             // Reference the auto-generated proxy for the hub.
             var chat = $.connection.chatHub;
+            //chats.loadUsers = function (data) { loadUsers(data); };
             // Create a function that the hub can call back to display messages.
             chat.client.addNewMessageToPage = function (name, message) {
                 // Add the message to the page.
@@ -38,10 +39,30 @@
             // Set initial focus to message input box.
             $('#message').focus();
             $('#Username').append("You are chatting as " + $('#displayname').val() + ":");
+
+            chat.client.addNewOnlineUser = function (name) {
+                // Update list of users
+                if (name == $('#displayname').val())
+                    $('#onlineList').append('<div class="border" style="color:red">You: ' + name + '</div>');
+                else {
+                    $('#onlineList').append('<div class="border">' + name + '</div>');
+                    $("#users").append('<option value="' + name + '">' + name + '</option>');
+                }
+            };
+            //chat.client.addNewOnlineUser = function (name) {
+            //    $('#users').append('<li><strong>' + name + '</strong></li>');
+            //    //var stringArray = new Array();
+            //    //stringArray = chat.server.getOnlineUsers();
+            //    //console.log(stringArray);
+            //    //for (i = 0; i < stringArray.length; i++) {
+            //    //    $('#users').append('<li><strong>' + stringArray[i] + '</strong></li>');
+            //    //}
+            //};
+            
             // Start the connection.
             $.connection.hub.start().done(function () {
                 if ($('#displayname').val != null) {
-                    chat.server.getOnlineUsers();
+                    chat.server.addOnlineUser($('#displayname').val());                                        
                 }
                 $('#sendmessage').click(function () {
                     // Call the Send method on the hub.

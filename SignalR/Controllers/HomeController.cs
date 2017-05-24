@@ -30,5 +30,10 @@ namespace SignalR.Controllers
         {
             return View();
         }
+
+        public ActionResult Chat2()
+        {
+            return View();
+        }
     }
 }
