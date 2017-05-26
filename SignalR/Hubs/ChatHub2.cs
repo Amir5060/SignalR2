@@ -3,15 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using Microsoft.AspNet.SignalR;
+using Microsoft.AspNet.SignalR.Hubs;
 using System.Threading.Tasks;
 using System.Collections.Concurrent;
 using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.WindowsAzure.Storage;
+using SignalR.DAL;
 
 namespace SignalR.Hubs
 {
     public class ChatHub2 : Hub
     {
+        private IDataLayer _dataLayer;
+        public ChatHub2(IDataLayer dataLayer)
+        {
+            _dataLayer = dataLayer;
+        }
         static ConcurrentDictionary<string, string> dic = new ConcurrentDictionary<string, string>();
 
         public void Send(string name, string message)
@@ -19,9 +26,10 @@ namespace SignalR.Hubs
 
             // Call the broadcastMessage method to update clients.
             Clients.All.broadcastMessage(name, message);
-            CloudTable table = MessageTable();
-            ChatMessage msg1 = new ChatMessage(name, DateTime.Now.ToString(), message);
-            var v = table.Execute(TableOperation.InsertOrReplace(msg1));
+            //CloudTable table = MessageTable();
+            //ChatMessage msg1 = new ChatMessage(name, DateTime.Now.ToString(), message);
+            //var v = table.Execute(TableOperation.InsertOrReplace(msg1));
+            _dataLayer.AddMessage(name, message);
         }
 
         public void sendToSpecific(string name, string message, string to)
@@ -50,14 +58,14 @@ namespace SignalR.Hubs
             }
         }
 
-        public CloudTable MessageTable()
-        {
-            string storageConnection = "DefaultEndpointsProtocol=https;AccountName=newsignal;AccountKey=d3Ug4bdWUssFO8SwYp5P5c48CdmYNuaFNfxTJpbR5MF56aqGZeWUVGsXHN33H+GAehcIYUabql5tEpn0ojc98g==;EndpointSuffix=core.windows.net";
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnection);
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-            //table.CreateIfNotExists();
-            return tableClient.GetTableReference("newsignal");
-        }
+        //public CloudTable MessageTable()
+        //{
+        //    string storageConnection = "DefaultEndpointsProtocol=https;AccountName=newsignal;AccountKey=d3Ug4bdWUssFO8SwYp5P5c48CdmYNuaFNfxTJpbR5MF56aqGZeWUVGsXHN33H+GAehcIYUabql5tEpn0ojc98g==;EndpointSuffix=core.windows.net";
+        //    CloudStorageAccount storageAccount = CloudStorageAccount.Parse(storageConnection);
+        //    CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+        //    //table.CreateIfNotExists();
+        //    return tableClient.GetTableReference("newsignal");
+        //}
 
         //public override Task OnDisconnected()
         //{
@@ -69,19 +77,19 @@ namespace SignalR.Hubs
 
     }
 
-    public class ChatMessage : TableEntity
-    {
-        public ChatMessage() { }
-        public ChatMessage(string user, string time, string message)
-        {
-            PartitionKey = user;
-            RowKey = time;
-            Message = message;
-            username = user;
-        }
-        public string SessionID { get; set; }
-        public string Message { get; set; }
+    //public class ChatMessage : TableEntity
+    //{
+    //    public ChatMessage() { }
+    //    public ChatMessage(string user, string time, string message)
+    //    {
+    //        PartitionKey = user;
+    //        RowKey = time;
+    //        Message = message;
+    //        username = user;
+    //    }
+    //    public string SessionID { get; set; }
+    //    public string Message { get; set; }
 
-        public string username { get; set; }
-    }
+    //    public string username { get; set; }
+    //}
 }
